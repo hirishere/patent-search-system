@@ -39,26 +39,26 @@ pip install flask flask-cors aiohttp psutil numpy matplotlib sentence-transforme
 
 1. **Start the Backend Server**:
 ```bash
-python patent_backend_server.py
+python3 src/patent_backend_server.py
 ```
 The server will start on http://localhost:5000
 
 2. **Access the Web Interface**:
 Open `index.html` in a web browser or serve it with:
 ```bash
-python -m http.server 8000
+python3 -m http.server 8000
 ```
 Then navigate to http://localhost:8000/index.html
 
 3. **Run Load Tests**:
 ```bash
-python run_load_test.py
+python3 src/run_load_test.py
 ```
 This will simulate concurrent users and generate performance reports in the `results/` directory.
 
-4. **Run Evaluation Pipeline** (optional):
+4. **Run Evaluation Pipeline**:
 ```bash
-python patent_eval_training.py
+python3 src/patent_eval_training.py
 ```
 
 ## Features Demonstrated
