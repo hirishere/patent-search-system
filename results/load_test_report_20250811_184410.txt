@@ -1,0 +1,43 @@
+Patent Search System - Performance Test Report
+=============================================
+Generated: 2025-08-11 18:44:11
+
+Peak Performance Metrics (100 concurrent users):
+• Throughput: 90.71 requests/second
+• Average Response Time: 0.676 seconds
+• 95th Percentile Response: 1.036 seconds
+• 99th Percentile Response: 1.080 seconds
+• Success Rate: 100.00%
+• Max Concurrent Observed: 26
+
+Test Scenarios:
+
+Light Load:
+  Users: 10 concurrent
+  Total Requests: 50
+  Throughput: 24.05 req/s
+  Avg Response Time: 0.025s
+  Success Rate: 100.0%
+
+Medium Load:
+  Users: 50 concurrent
+  Total Requests: 250
+  Throughput: 88.11 req/s
+  Avg Response Time: 0.156s
+  Success Rate: 100.0%
+
+Heavy Load:
+  Users: 100 concurrent
+  Total Requests: 500
+  Throughput: 90.71 req/s
+  Avg Response Time: 0.676s
+  Success Rate: 100.0%
+
+Extended Heavy Load:
+  Users: 100 concurrent
+  Total Requests: 1000
+  Throughput: 3.57 req/s
+  Avg Response Time: 0.739s
+  Success Rate: 11.4%
+
+Detailed visualizations saved in: load_test_results_20250811_184410.png

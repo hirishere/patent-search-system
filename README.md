@@ -7,7 +7,6 @@ This project addresses the challenge of efficiently searching through patent dat
 1. **Multi-modal Search**: Patent professionals need to search by various criteria - keywords, classifications, specific fields, or complex combinations
 2. **Performance at Scale**: Supporting concurrent users while maintaining sub-second response times
 3. **Data Quality**: Handling incomplete patent records gracefully
-4. **Evaluation Pipeline**: Building infrastructure to improve search quality through training and evaluation
 
 ## Solution Overview
 
@@ -15,7 +14,6 @@ I built a high-performance patent search system with:
 - 8 different search modes including hybrid search with multiple constraints
 - Support for 100+ concurrent users with sub-second response times
 - Web interface with real-time performance monitoring
-- Training/evaluation pipeline for search quality improvement
 - Comprehensive load testing and performance analysis tools
 
 ### Enhancement Chosen: Interfaces and Users
@@ -48,18 +46,13 @@ Open `index.html` in a web browser or serve it with:
 ```bash
 python3 -m http.server 8000
 ```
-Then navigate to http://localhost:8000/index.html
+Then navigate to http://localhost:8000
 
 3. **Run Load Tests**:
 ```bash
 python3 src/run_load_test.py
 ```
 This will simulate concurrent users and generate performance reports in the `results/` directory.
-
-4. **Run Evaluation Pipeline**:
-```bash
-python3 src/patent_eval_training.py
-```
 
 ## Features Demonstrated
 
