@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Patent Search Engine</title>
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #f5f7fa;
+        color: #2c3e50;
+        line-height: 1.6;
+    }
+    
+    /* Header spans full width */
+    header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 0;
+        margin-bottom: 40px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        width: 100%;
+        position: relative;
+        z-index: 10;
+    }
+    
+    h1 {
+        text-align: center;
+        font-size: 2.5em;
+        font-weight: 700;
+    }
+    
+    .subtitle {
+        text-align: center;
+        margin-top: 10px;
+        opacity: 0.9;
+    }
+    
+    /* Main layout container */
+    .page-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        gap: 20px;
+    }
+    
+    /* Main content area */
+    .main-content {
+        flex: 1;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    /* Side panel container */
+    .side-panel-container {
+        width: 250px;
+        flex-shrink: 0;
+    }
+    
+    /* Sticky side panels wrapper */
+    .side-panels-wrapper {
+        position: sticky;
+        top: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    /* Search history panel */
+    .search-history {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    
+    .search-history h4 {
+        margin: 0 0 15px 0;
+        color: #4a5568;
+        font-size: 1em;
+    }
+    
+    /* Stats panel */
+    .stats-panel {
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .stats-panel h4 {
+        margin: 0 0 15px 0;
+        color: #4a5568;
+        font-size: 1em;
+    }
+    
+    .stat-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 10px;
+        font-size: 0.9em;
+    }
+    
+    .stat-item:last-child {
+        margin-bottom: 0;
+    }
+    
+    .stat-value {
+        font-weight: bold;
+        color: #667eea;
+        transition: color 0.3s ease;
+    }
+    
+    .stat-value.updating {
+        color: #48bb78;
+    }
+    
+    .stat-value.loading {
+        color: #a0aec0;
+        font-style: italic;
+    }
+    
+    /* Clear button styling */
+    .clear-history-btn {
+        font-size: 0.8em;
+        background: none;
+        border: 1px solid #e2e8f0;
+        color: #718096;
+        cursor: pointer;
+        padding: 2px 8px;
+        border-radius: 3px;
+        transition: all 0.2s;
+    }
+    
+    .clear-history-btn:hover {
+        color: #4a5568;
+        border-color: #cbd5e0;
+        background: #f7fafc;
+    }
+    
+    .search-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        margin-bottom: 30px;
+    }
+    
+    .search-type-selector {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .search-type-btn {
+        padding: 8px 16px;
+        border: 2px solid #667eea;
+        background: white;
+        color: #667eea;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .search-type-btn.active {
+        background: #667eea;
+        color: white;
+    }
+    
+    .search-type-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .search-input-group {
+        display: none;
+    }
+    
+    .search-input-group.active {
+        display: block;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: 600;
+        color: #4a5568;
+    }
+    
+    input[type="text"], input[type="date"], select {
+        width: 100%;
+        padding: 10px;
+        border: 2px solid #e2e8f0;
+        border-radius: 5px;
+        font-size: 16px;
+        transition: border-color 0.3s;
+    }
+    
+    input:focus, select:focus {
+        outline: none;
+        border-color: #667eea;
+    }
+    
+    .hybrid-inputs {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 15px;
+    }
+    
+    .search-button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 12px 30px;
+        border: none;
+        border-radius: 5px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.3s;
+        margin-top: 20px;
+        width: 100%;
+    }
+    
+    .search-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+    
+    .search-button:disabled {
+        background: #cbd5e0;
+        cursor: not-allowed;
+        transform: none;
+    }
+    
+    .results-section {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        min-height: 200px;
+    }
+    
+    .loading {
+        text-align: center;
+        padding: 40px;
+    }
+    
+    .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .results-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e2e8f0;
+    }
+    
+    .result-count {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #4a5568;
+    }
+    
+    .timing-info {
+        font-size: 0.9em;
+        color: #718096;
+    }
+    
+    .patent-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 20px;
+        margin-bottom: 15px;
+        transition: all 0.3s;
+    }
+    
+    .patent-card:hover {
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+    }
+    
+    .patent-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #2d3748;
+        margin-bottom: 10px;
+    }
+    
+    .patent-doc-number {
+        color: #667eea;
+        font-size: 0.9em;
+        margin-bottom: 10px;
+    }
+    
+    .patent-abstract {
+        color: #4a5568;
+        margin-bottom: 10px;
+        line-height: 1.6;
+    }
+    
+    .patent-meta {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        font-size: 0.9em;
+        color: #718096;
+    }
+    
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+    
+    .highlight {
+        background-color: #fef3c7;
+        padding: 2px 4px;
+        border-radius: 3px;
+    }
+    
+    .no-results {
+        text-align: center;
+        padding: 40px;
+        color: #718096;
+    }
+    
+    .history-item {
+        padding: 8px;
+        margin-bottom: 5px;
+        background: #f7fafc;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 0.9em;
+        transition: all 0.3s;
+        animation: slideIn 0.3s ease-out;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    .history-item:hover {
+        background: #e2e8f0;
+    }
+    
+    /* Responsive design */
+    @media (max-width: 1400px) {
+        .page-container {
+            padding: 0 20px;
+        }
+        
+        .side-panel-container {
+            display: none;
+        }
+        
+        .main-content {
+            max-width: 100%;
+        }
+    }
+    
+    @media (max-width: 768px) {
+        .hybrid-inputs {
+            grid-template-columns: 1fr;
+        }
+        
+        .search-type-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+</head>
+<body>
+<!-- Header spans full width -->
+<header>
+    <h1>Patent Search Engine</h1>
+    <p class="subtitle">High-Performance Search with Concurrent User Support</p>
+</header>
+
+<!-- Main page container with balanced layout -->
+<div class="page-container">
+    <!-- Main content area -->
+    <div class="main-content">
+        <div class="search-section">
+            <div class="search-type-selector">
+                <button class="search-type-btn active" data-type="keyword">Keyword</button>
+                <button class="search-type-btn" data-type="patent-id">Patent ID</button>
+                <button class="search-type-btn" data-type="title">Title Search</button>
+                <button class="search-type-btn" data-type="abstract">Abstract Search</button>
+                <button class="search-type-btn" data-type="claims">Claims Search</button>
+                <button class="search-type-btn" data-type="classification">Classification</button>
+                <button class="search-type-btn" data-type="hybrid">Hybrid Search</button>
+            </div>
+            
+            <!-- Search input groups -->
+            <div class="search-input-group active" id="keyword-group">
+                <div class="form-group">
+                    <label for="keyword-input">Enter keywords:</label>
+                    <input type="text" id="keyword-input" placeholder="e.g., wheel bearing torque">
+                </div>
+            </div>
+            
+            <div class="search-input-group" id="patent-id-group">
+                <div class="form-group">
+                    <label for="patent-id-input">Enter Patent ID:</label>
+                    <input type="text" id="patent-id-input" placeholder="e.g., US20240051333">
+                </div>
+            </div>
+            
+            <div class="search-input-group" id="title-group">
+                <div class="form-group">
+                    <label for="title-input">Search in titles:</label>
+                    <input type="text" id="title-input" placeholder="e.g., pneumatic tire">
+                </div>
+            </div>
+            
+            <div class="search-input-group" id="abstract-group">
+                <div class="form-group">
+                    <label for="abstract-input">Search in abstracts:</label>
+                    <input type="text" id="abstract-input" placeholder="e.g., heat shield">
+                </div>
+            </div>
+            
+            <div class="search-input-group" id="claims-group">
+                <div class="form-group">
+                    <label for="claims-input">Search in claims:</label>
+                    <input type="text" id="claims-input" placeholder="e.g., monofilament">
+                </div>
+            </div>
+            
+            <div class="search-input-group" id="classification-group">
+                <div class="form-group">
+                    <label for="classification-input">Classification code:</label>
+                    <input type="text" id="classification-input" placeholder="e.g., B60B">
+                </div>
+            </div>
+            
+            <div class="search-input-group" id="hybrid-group">
+                <div class="hybrid-inputs">
+                    <div class="form-group">
+                        <label for="hybrid-class-prefix">Classification Prefix:</label>
+                        <input type="text" id="hybrid-class-prefix" placeholder="e.g., B60B">
+                    </div>
+                    <div class="form-group">
+                        <label for="hybrid-title-keywords">Title Keywords:</label>
+                        <input type="text" id="hybrid-title-keywords" placeholder="e.g., wheel, hub">
+                    </div>
+                    <div class="form-group">
+                        <label for="hybrid-abstract-keywords">Abstract Keywords:</label>
+                        <input type="text" id="hybrid-abstract-keywords" placeholder="e.g., torque, bearing">
+                    </div>
+                    <div class="form-group">
+                        <label for="hybrid-claims-keywords">Claims Keywords:</label>
+                        <input type="text" id="hybrid-claims-keywords" placeholder="e.g., metallic">
+                    </div>
+                </div>
+            </div>
+            
+            <button class="search-button" id="search-btn">Search Patents</button>
+        </div>
+        
+        <div class="results-section" id="results">
+            <div class="no-results">
+                <p>Enter a search query to find patents</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Side panel container -->
+    <div class="side-panel-container">
+        <div class="side-panels-wrapper">
+            <div class="search-history" id="search-history">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                    <h4 style="margin: 0;">Recent Searches</h4>
+                    <button onclick="clearHistory()" class="clear-history-btn">Clear</button>
+                </div>
+                <div id="history-list"></div>
+            </div>
+            
+            <div class="stats-panel" id="stats-panel">
+                <h4>Performance Stats</h4>
+                <div class="stat-item">
+                    <span>Response Time:</span>
+                    <span class="stat-value" id="last-response-time">-</span>
+                </div>
+                <div class="stat-item">
+                    <span>Concurrent Requests:</span>
+                    <span class="stat-value" id="concurrent-requests">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Total Requests:</span>
+                    <span class="stat-value" id="total-requests">0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // API configuration
+    const API_BASE = 'http://localhost:5000/api';
+    
+    // Search history - resets on page refresh (not persisted)
+    let searchHistory = [];
+    
+    // Search type management
+    const searchTypeBtns = document.querySelectorAll('.search-type-btn');
+    const searchGroups = document.querySelectorAll('.search-input-group');
+    let currentSearchType = 'keyword';
+    
+    searchTypeBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            searchTypeBtns.forEach(b => b.classList.remove('active'));
+            searchGroups.forEach(g => g.classList.remove('active'));
+            
+            btn.classList.add('active');
+            currentSearchType = btn.dataset.type;
+            document.getElementById(`${currentSearchType}-group`).classList.add('active');
+        });
+    });
+    
+    // Build search query based on type
+    function buildSearchQuery() {
+        let query = '';
+        let display = '';
+        
+        switch (currentSearchType) {
+            case 'keyword':
+                query = document.getElementById('keyword-input').value;
+                display = `Keyword: ${query}`;
+                break;
+            case 'patent-id':
+                query = document.getElementById('patent-id-input').value;
+                display = `Patent ID: ${query}`;
+                break;
+            case 'title':
+                query = `title: ${document.getElementById('title-input').value}`;
+                display = `Title: ${document.getElementById('title-input').value}`;
+                break;
+            case 'abstract':
+                query = `abstract: ${document.getElementById('abstract-input').value}`;
+                display = `Abstract: ${document.getElementById('abstract-input').value}`;
+                break;
+            case 'claims':
+                query = `claims: ${document.getElementById('claims-input').value}`;
+                display = `Claims: ${document.getElementById('claims-input').value}`;
+                break;
+            case 'classification':
+                query = `class: ${document.getElementById('classification-input').value}`;
+                display = `Class: ${document.getElementById('classification-input').value}`;
+                break;
+            case 'hybrid':
+                const parts = [];
+                const classPrefix = document.getElementById('hybrid-class-prefix').value;
+                const titleKeywords = document.getElementById('hybrid-title-keywords').value;
+                const abstractKeywords = document.getElementById('hybrid-abstract-keywords').value;
+                const claimsKeywords = document.getElementById('hybrid-claims-keywords').value;
+                
+                if (classPrefix) parts.push(`class_prefix: "${classPrefix}"`);
+                if (titleKeywords) parts.push(`title_keywords: "${titleKeywords}"`);
+                if (abstractKeywords) parts.push(`abstract: "${abstractKeywords}"`);
+                if (claimsKeywords) parts.push(`claims: "${claimsKeywords}"`);
+                
+                query = `{${parts.join(', ')}}`;
+                display = `Hybrid: ${parts.length} constraints`;
+                break;
+        }
+        
+        return { query, display };
+    }
+    
+    // Update stats periodically
+    async function updateStats() {
+        try {
+            const response = await fetch(`${API_BASE}/stats`);
+            const stats = await response.json();
+            
+            // Update values with animation
+            updateStatValue('concurrent-requests', stats.concurrent_requests || 0);
+            updateStatValue('total-requests', stats.total_requests || 0);
+        } catch (error) {
+            console.error('Error fetching stats:', error);
+        }
+    }
+    
+    // Helper function to update stat values with animation
+    function updateStatValue(elementId, value) {
+        const element = document.getElementById(elementId);
+        if (element) {
+            const newValue = value.toString();
+            if (element.textContent !== newValue) {
+                element.classList.add('updating');
+                element.textContent = newValue;
+                setTimeout(() => element.classList.remove('updating'), 300);
+            }
+        }
+    }
+    
+    // Perform search
+    async function performSearch(overrideQuery = null) {
+        const { query, display } = overrideQuery ? 
+            { query: overrideQuery.query || overrideQuery, display: overrideQuery.display || overrideQuery } : 
+            buildSearchQuery();
+        
+        if (!query) {
+            alert('Please enter a search query');
+            return;
+        }
+        
+        // Add to history
+        searchHistory.unshift({ query, display, timestamp: Date.now() });
+        searchHistory = searchHistory.slice(0, 10); // Keep last 10
+        updateHistoryDisplay();
+        
+        // Show loading
+        document.getElementById('results').innerHTML = `
+            <div class="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 20px;">Searching patents...</p>
+            </div>
+        `;
+        
+        const startTime = performance.now();
+        
+        try {
+            const response = await fetch(`${API_BASE}/search`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+            
+            const data = await response.json();
+            const endTime = performance.now();
+            
+            // Update performance stats
+            const responseTime = (endTime - startTime) / 1000;
+            updateStatValue('last-response-time', `${responseTime.toFixed(3)}s`);
+            
+            if (data.performance_info) {
+                updateStatValue('concurrent-requests', data.performance_info.concurrent_requests || 0);
+            }
+            
+            displayResults(data);
+            
+        } catch (error) {
+            document.getElementById('results').innerHTML = `
+                <div class="no-results">
+                    <p>Error performing search. Please ensure the backend server is running.</p>
+                    <p style="font-size: 0.9em; color: #718096; margin-top: 10px;">
+                        Run: <code style="background: #f7fafc; padding: 2px 6px; border-radius: 3px;">python patent_backend_server.py</code>
+                    </p>
+                </div>
+            `;
+        }
+    }
+    
+    // Update history display
+    function updateHistoryDisplay() {
+        const historyList = document.getElementById('history-list');
+        historyList.innerHTML = searchHistory.map(item => 
+            `<div class="history-item" onclick="replaySearch('${encodeURIComponent(JSON.stringify(item))}')" title="${item.display}">${item.display}</div>`
+        ).join('');
+    }
+    
+    function replaySearch(encodedItem) {
+        const item = JSON.parse(decodeURIComponent(encodedItem));
+        
+        // Determine search type from the query
+        let searchType = 'keyword';
+        if (item.query.startsWith('title:')) searchType = 'title';
+        else if (item.query.startsWith('abstract:')) searchType = 'abstract';
+        else if (item.query.startsWith('claims:')) searchType = 'claims';
+        else if (item.query.startsWith('class:')) searchType = 'classification';
+        else if (item.query.startsWith('{')) searchType = 'hybrid';
+        else if (/^[A-Z0-9]+$/.test(item.query)) searchType = 'patent-id';
+        
+        // Click the appropriate button
+        searchTypeBtns.forEach(btn => {
+            if (btn.dataset.type === searchType) {
+                btn.click();
+            }
+        });
+        
+        // Perform search after UI updates
+        setTimeout(() => performSearch(item), 100);
+    }
+    
+    // Display results
+    function displayResults(data) {
+        const resultsDiv = document.getElementById('results');
+        
+        if (data.status !== 'success' || !data.results || data.results.length === 0) {
+            resultsDiv.innerHTML = `
+                <div class="no-results">
+                    <p>No patents found matching your search criteria</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = `
+            <div class="results-header">
+                <div class="result-count">Found ${data.count} patents</div>
+                <div class="timing-info">
+                    Search completed in ${data.timing ? data.timing.total_time.toFixed(3) : '0.000'}s
+                    ${data.performance_info ? `| Server time: ${data.performance_info.response_time.toFixed(3)}s` : ''}
+                </div>
+            </div>
+        `;
+        
+        data.results.forEach(patent => {
+            html += `
+                <div class="patent-card">
+                    <div class="patent-title">${patent.title || 'Untitled'}</div>
+                    <div class="patent-doc-number">${patent.doc_number || 'No document number'}</div>
+                    <div class="patent-abstract">${(patent.abstract || 'No abstract available').substring(0, 300)}...</div>
+                    <div class="patent-meta">
+                        <div class="meta-item">
+                            <span>Classification:</span>
+                            <strong>${patent.classification || 'N/A'}</strong>
+                        </div>
+                        ${patent.available_fields && patent.available_fields.has_claims ? 
+                            '<div class="meta-item">✓ Claims available</div>' : ''}
+                        ${patent.available_fields && patent.available_fields.has_description ? 
+                            '<div class="meta-item">✓ Description available</div>' : ''}
+                        ${patent.match_locations ? 
+                            `<div class="meta-item">Matched in: ${patent.match_locations.join(', ')}</div>` : ''}
+                    </div>
+                </div>
+            `;
+        });
+        
+        resultsDiv.innerHTML = html;
+    }
+    
+    // Search button
+    document.getElementById('search-btn').addEventListener('click', () => performSearch());
+    
+    // Enter key support
+    document.querySelectorAll('input').forEach(input => {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                performSearch();
+            }
+        });
+    });
+    
+    // Clear search history
+    function clearHistory() {
+        searchHistory = [];
+        updateHistoryDisplay();
+    }
+    
+    // Update stats periodically
+    setInterval(updateStats, 5000);
+    updateStats(); // Initial update
+</script>
+</body>
+</html>
